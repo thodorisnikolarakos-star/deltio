@@ -77,7 +77,7 @@ button.send[disabled]{opacity:.6}
     <div class="chips" id="works"></div>
     <label for="status">Κατάσταση</label>
     <select id="status"><option value="">— επιλέξτε —</option><option>Ολοκληρώθηκε</option><option>Μερικώς</option><option>Πρόβλημα</option><option>Ακύρωσε ο πελάτης</option><option>Επαναπρογραμματισμός</option></select>
-    <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία</label><input id="newdate" type="date"></div>
+    <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία (αν είναι γνωστή)</label><input id="newdate" type="date"></div>
     <p class="hint" id="stHint"></p>
   </section>
 
@@ -302,7 +302,7 @@ function refresh(){
   var part=st==='Μερικώς'; show('fbSec',fbOK);
   show('probBox',part||st==='Πρόβλημα');
   $('partHint').textContent=part?'⚠ Μερικώς: δηλώστε ΟΛΑ τα υλικά – όσα μπήκαν σήμερα ΚΑΙ όσα θα χρειαστούν για να κλείσει η εκκρεμότητα (μπορεί να την κλείσει άλλο συνεργείο χωρίς δελτίο). Στα γενικά σχόλια γράψτε τι έγινε και τι μένει.':'';
-  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Βάλτε νέα ημερομηνία και τον λόγο στα γενικά σχόλια.':st==='Πρόβλημα'?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
+  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε στα γενικά σχόλια τον λόγο και ποιος πρέπει να πάει πρώτα (π.χ. χωματουργός, ΔΕΗ). Νέα ημερομηνία μόνο αν είναι γνωστή.':st==='Πρόβλημα'?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
 }
 document.addEventListener('change',refresh); refresh();
 
@@ -332,7 +332,6 @@ function build(){
   var st=val('status'), done=st==='Ολοκληρώθηκε';
   if(!st) errs.push('Διαλέξτε κατάσταση.');
   if(/Πρόβλημα|Ακύρωσε|Επαναπρογραμματισμός/.test(st)&&!$('notes').value.trim()) errs.push('Γράψτε τον λόγο στα γενικά σχόλια.');
-  if(st==='Επαναπρογραμματισμός'&&!val('newdate')) errs.push('Βάλτε νέα ημερομηνία.');
   if(st==='Μερικώς'){
     if(!$('notes').value.trim()) errs.push('Μερικώς: γράψτε στα γενικά σχόλια τι έγινε και τι μένει.');
   }
