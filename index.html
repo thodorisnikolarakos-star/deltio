@@ -210,14 +210,15 @@ $('hCrew').textContent = J.crew? '🔒 '+J.crew : '';
 
 var CT=J.ctype, BT=J.btype, NC=CT==='New construction', OU=CT==='Overuse', OB=CT==='Overbuild';
 var mobOK = NC||OU||!CT, fbOK = (NC||OB) && BT!=='Low Density', GF = BT==='Groundfloor Order', LD = BT==='Low Density';
-var MANOS = J.crew==='Μάνος';
+var MANOS0 = J.crew==='Μάνος';
+var MANOS = MANOS0 && !fbOK; /* κτίριο με FB: ο Μάνος κάνει μόνο κατασκευή Β+Γ φάσης, χωρίς κολλήσεις/ενεργοποίηση */
 
 /* ---------- Φόρμα ---------- */
 ['aer','und','imc','gc','act','boo'].forEach(function(id){$(id).innerHTML=opts(L[id]);});
 $('bep').innerHTML = opts(L.bep);
 $('mob').innerHTML = opts(LD? L.mob : L.mob.filter(function(m){return !/^LD/.test(m);}));
-$('works').innerHTML = ['Κατακόρυφη','Γ φάση','Εμφύσηση','Συγκολλήσεις','Ενεργοποίηση πελάτη'].map(function(w){return '<label><input type="checkbox" value="'+w+'"> '+w+'</label>';}).join('');
-show('mobBox',mobOK); show('pcWrap',mobOK); if(J.subs) $('pcq').value=J.subs; show('fbSec',fbOK); show('actBox',MANOS); show('imcBox',!OU);
+$('works').innerHTML = (MANOS0&&fbOK?['Κατακόρυφη','Γ φάση','Εμφύσηση']:['Κατακόρυφη','Γ φάση','Εμφύσηση','Συγκολλήσεις','Ενεργοποίηση πελάτη']).map(function(w){return '<label><input type="checkbox" value="'+w+'"> '+w+'</label>';}).join('');
+show('mobBox',mobOK); show('pcWrap',mobOK); if(J.subs) $('pcq').value=J.subs; show('fbSec',fbOK); show('actBox',MANOS); if(MANOS0&&fbOK){var _h=document.createElement('p');_h.className='hint';_h.style.cssText='background:#EEF4FF;border-radius:8px;padding:8px 10px';_h.textContent='Κτίριο με Floor Box: το δελτίο αφορά μόνο την κατασκευή Β και Γ φάσης (χωρίς κολλήσεις και ενεργοποίηση).';$('works').parentNode.insertBefore(_h,$('works'));} show('imcBox',!OU);
 var need = NC||OU ? 2 : 1;
 $('bepHint').textContent = J.subs ? ('Για '+J.subs+' συνδρομητές: BEP τουλάχιστον '+J.subs+' θέσεων'+(mobOK?' · MOB τουλάχιστον '+(J.subs*2)+' θέσεων':'')+'.') : '';
 
