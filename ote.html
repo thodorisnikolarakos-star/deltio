@@ -52,6 +52,7 @@ button.send[disabled]{opacity:.6}
 .presc b{color:var(--ink)}
 .tag{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;margin-left:6px;background:var(--paper);border:1px solid var(--line)}
 .tag.cust{background:var(--fiber);color:var(--fiber-ink);border-color:var(--fiber)}
+.nw{display:none!important}
 </style>
 </head>
 <body>
@@ -75,7 +76,7 @@ button.send[disabled]{opacity:.6}
     <div class="chips" id="works"></div>
     <label for="status">Κατάσταση</label>
     <select id="status"><option value="">— επιλέξτε —</option><option>Ολοκληρώθηκε</option><option>Μερικώς</option><option>Πρόβλημα</option><option>Ακύρωσε ο πελάτης</option><option>Επαναπρογραμματισμός</option></select>
-    <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία</label><input id="newdate" type="date"></div>
+    <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία (αν είναι γνωστή)</label><input id="newdate" type="date"></div>
     <p class="hint" id="stHint"></p>
   </section>
 
@@ -296,8 +297,8 @@ function refresh(){
   var cs=$('bcc'), cur=cs.value, list=bw==='Εναέριο'?['14028679']:['14027440','14027441'];
   if(cs.dataset.k!==bw){cs.innerHTML=copts(list,'καλώδιο'); cs.dataset.k=bw; if(list.indexOf(cur)>=0)cs.value=cur; else if(list.length===1)cs.value=list[0];}
   show('gExtBox',((document.querySelector('input[name=gExt]:checked')||{}).value)==='Ναι');
-  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');
-  $('stHint').textContent=st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Βάλτε νέα ημερομηνία και τον λόγο στα γενικά σχόλια.':st==='Πρόβλημα'?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
+  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
+  $('stHint').textContent=st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε μόνο τον λόγο στα γενικά σχόλια.':st==='Πρόβλημα'?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
 }
 document.addEventListener('change',refresh); refresh();
 
@@ -309,7 +310,6 @@ function build(){
   var st=val('status'), done=st==='Ολοκληρώθηκε';
   if(!st) errs.push('Διαλέξτε κατάσταση.');
   if(/Πρόβλημα|Ακύρωσε|Επαναπρογραμματισμός/.test(st)&&!$('notes').value.trim()) errs.push('Γράψτε τον λόγο στα γενικά σχόλια.');
-  if(st==='Επαναπρογραμματισμός'&&!val('newdate')) errs.push('Βάλτε νέα ημερομηνία.');
 
   /* BEP */
   var b=val('bep');
@@ -378,6 +378,7 @@ function build(){
   var floorsStr=FLOORS.map(function(f){return '('+f.fl+'):'+f.n;}).join(',');
   var job={client:'ΟΤΕ',re:P.re||'',ofs:J.srid,bid:J.bid,addr:J.addr,date:J.date,ctype:'ΟΤΕ '+(RETAIL?'Retail':'Wholesale'),btype:J.bo?'Direct drop (BEP only)':'Με FB',crew:J.crew,subs:J.subs,floors:floorsStr,
     presc:{bep:J.bep,tpl:J.tpl,bmo:J.bmo,bcp:J.bcp,bcpt:J.bcpt,bcpi:J.bcpi,sp:J.sp,cf:J.cf,fl:J.fl}};
+  if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
   return {errs:errs,warns:warns,data:{job:job,works:works,status:st,newDate:val('newdate'),cable:bw?('BCP→BEP '+bw):'',activation:'',patchcords:pc,lines:lines,warnings:warns,notes:$('notes').value.trim()}};
 }
 

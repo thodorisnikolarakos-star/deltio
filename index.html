@@ -46,6 +46,7 @@ button.send[disabled]{opacity:.6}
 .err{background:var(--bad-bg);color:var(--bad)}
 .warn{background:var(--warn-bg);color:var(--warn)}
 .okbox{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.nw{display:none!important}
 </style>
 </head>
 <body>
@@ -299,7 +300,7 @@ function refresh(){
   var actOn=document.querySelector('input[name=actst]:checked').value==='Έγινε ενεργοποίηση';
   show('devBox',actOn); show('srBox',!!val('act')); show('sbBox',!!val('boo'));
   var pcc=document.querySelector('input[name=pc]:checked'); show('pcBox',!!pcc&&pcc.value==='Μπήκαν');
-  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');
+  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
   var part=st==='Μερικώς'; show('fbSec',fbOK);
   show('probBox',part||st==='Πρόβλημα');
   $('partHint').textContent=part?'⚠ Μερικώς: δηλώστε ΟΛΑ τα υλικά – όσα μπήκαν σήμερα ΚΑΙ όσα θα χρειαστούν για να κλείσει η εκκρεμότητα (μπορεί να την κλείσει άλλο συνεργείο χωρίς δελτίο). Στα γενικά σχόλια γράψτε τι έγινε και τι μένει.':'';
@@ -416,6 +417,7 @@ function build(){
   var works=[].slice.call(document.querySelectorAll('#works input:checked')).map(function(i){return i.value;});
   var notes=$('notes').value.trim(); if(pc&&pc!=='Μπήκαν'&&J.subs) notes=(notes?notes+'\n':'')+'Εκκρεμούν '+J.subs+' patchcords για κολλητές.';
   if(st==='Μερικώς'&&!lines.length) warns.push('Μερικώς χωρίς υλικά: δηλώστε όλα τα υλικά, και όσα θα χρειαστούν για την εκκρεμότητα.');
+  if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
   return {errs:errs,warns:warns,data:{job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,lines:lines,warnings:warns,notes:notes}};
 }
 
