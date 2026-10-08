@@ -328,6 +328,8 @@ function build(){
     if(!act.router) errs.push('Γράψτε τον σειριακό του router.');
     if(!$('pr').files.length) errs.push('Βγάλτε φωτογραφία του router.');
     } else { act.router=''; act.rtype='Router πελάτη / από ΟΤΕ'; }
+    var nz=function(x){return String(x||'').replace(/[\s\-]/g,'').toUpperCase();};
+    if(act.ont&&act.router&&nz(act.ont)===nz(act.router)) warns.push('Ο σειριακός του ONT και του router είναι ίδιος ('+act.ont+'). Μάλλον γράφτηκε κάπου λάθος σειριακός – ελέγξτε τις ετικέτες στις φωτογραφίες.');
     if(act.ont) lines.push({cat:eqLeft?'Εξοπλισμός χωρίς ενεργοποίηση':'Ενεργοποίηση',code:'ONT',item:'ONT',qty:1,unit:'τεμ.',serial:act.ont});
     if(act.own&&act.router&&act.rtype) lines.push({cat:eqLeft?'Εξοπλισμός χωρίς ενεργοποίηση':'Ενεργοποίηση',code:act.rtype,item:act.rtype,qty:1,unit:'τεμ.',serial:act.router});
   }
