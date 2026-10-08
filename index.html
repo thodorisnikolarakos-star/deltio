@@ -84,7 +84,9 @@ button.send[disabled]{opacity:.6}
 
   <section id="bepSec" class="mat">
     <h2>BEP / MOB</h2>
-    <label for="bep">BEP</label><select id="bep"></select>
+    <label style="display:flex;align-items:center;gap:8px;font-size:15px;margin:4px 0 10px"><input id="bepEx" type="checkbox" style="width:22px;height:22px"> Το BEP είναι υφιστάμενο (από Α φάση)</label>
+    <div id="bepExBox" class="hidden"><label>Αλλάχτηκε το BEP;</label><div class="chips"><label><input type="radio" name="bepch" value="Όχι"> Όχι – έμεινε το υπάρχον</label><label><input type="radio" name="bepch" value="Ναι"> Ναι – μπήκε καινούργιο</label></div></div>
+    <div id="bepSelBox"><label for="bep" id="bepL">BEP</label><select id="bep"></select></div>
     <div id="mobBox"><label for="mob">MOB</label><select id="mob"></select></div>
     <div id="pcWrap"><label>Patchcords BEP → MOB</label>
       <div class="chips"><label><input type="radio" name="pc" value="Μπήκαν"> Μπήκαν</label><label><input type="radio" name="pc" value="Όχι – τα βάζουν οι κολλητές"> Δεν μπήκαν – τα βάζουν οι κολλητές</label></div>
@@ -300,6 +302,7 @@ function refresh(){
   var actOn=document.querySelector('input[name=actst]:checked').value==='Έγινε ενεργοποίηση';
   show('devBox',actOn); show('srBox',!!val('act')); show('sbBox',!!val('boo'));
   var pcc=document.querySelector('input[name=pc]:checked'); show('pcBox',!!pcc&&pcc.value==='Μπήκαν');
+  var bex=$('bepEx').checked,bch=document.querySelector('input[name=bepch]:checked'); show('bepExBox',bex); show('bepSelBox',!bex||(!!bch&&bch.value==='Ναι')); $('bepL').textContent=bex?'Νέο BEP (αντικατάσταση)':'BEP'; if(bex&&!(bch&&bch.value==='Ναι')) $('bep').value='';
   var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
   var part=st==='Μερικώς'; show('fbSec',fbOK);
   show('probBox',part||st==='Πρόβλημα');
@@ -339,8 +342,12 @@ function build(){
   }
 
   /* BEP / MOB */
-  if(val('bep')){ lines.push({cat:'BEP',item:val('bep'),qty:1,unit:'τεμ.'}); if(J.subs&&ports(val('bep'))<J.subs) warns.push('Το BEP ('+ports(val('bep'))+') είναι μικρότερο από τους '+J.subs+' συνδρομητές.'); }
-  else if(done) warns.push('Δεν δηλώθηκε BEP.');
+  var bepEx=$('bepEx').checked,bepCh=(document.querySelector('input[name=bepch]:checked')||{}).value||'';
+  if(bepEx&&!bepCh) errs.push('Υφιστάμενο BEP: δηλώστε αν αλλάχτηκε.');
+  if(bepEx&&bepCh==='Ναι'&&!val('bep')) errs.push('Διαλέξτε το καινούργιο BEP που μπήκε.');
+  if(bepEx&&bepCh==='Όχι'){}
+  else if(val('bep')){ lines.push({cat:'BEP',item:val('bep'),qty:1,unit:'τεμ.',note:bepEx?'αντικατάσταση υφιστάμενου BEP Α φάσης':''}); if(J.subs&&ports(val('bep'))<J.subs) warns.push('Το BEP ('+ports(val('bep'))+') είναι μικρότερο από τους '+J.subs+' συνδρομητές.'); }
+  else if(done&&!bepEx) warns.push('Δεν δηλώθηκε BEP.');
   if(mobOK&&val('mob')){ lines.push({cat:'MOB',item:val('mob'),qty:1,unit:'τεμ.',note:/ως MOB/.test(val('mob'))?'αποχρέωση από κωδικό BEP':''}); if(J.subs&&ports(val('mob'))<J.subs*2) warns.push('Το MOB ('+ports(val('mob'))+') πρέπει να έχει τουλάχιστον '+(J.subs*2)+' θέσεις (active + spare).'); }
 
   /* Patchcords BEP → MOB (New construction / Overuse) */
@@ -418,7 +425,7 @@ function build(){
   var notes=$('notes').value.trim(); if(pc&&pc!=='Μπήκαν'&&J.subs) notes=(notes?notes+'\n':'')+'Εκκρεμούν '+J.subs+' patchcords για κολλητές.';
   if(st==='Μερικώς'&&!lines.length) warns.push('Μερικώς χωρίς υλικά: δηλώστε όλα τα υλικά, και όσα θα χρειαστούν για την εκκρεμότητα.');
   if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
-  return {errs:errs,warns:warns,data:{job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,lines:lines,warnings:warns,notes:notes}};
+  return {errs:errs,warns:warns,data:{job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,bep:(bepEx?('Υφιστάμενο Α φάσης'+(bepCh==='Ναι'?' – αλλάχτηκε':bepCh==='Όχι'?' – δεν αλλάχτηκε':'')):''),lines:lines,warnings:warns,notes:notes}};
 }
 
 
