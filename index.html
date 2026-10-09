@@ -129,6 +129,7 @@ button.send[disabled]{opacity:.6}
       <div class="chips"><label><input type="checkbox" id="odExt"> Εξωτερική</label><label><input type="checkbox" id="odInt"> Εσωτερική</label></div>
       <div id="spBox" class="hidden"><label for="sp">Σπιράλ Φ16 (μέτρα)</label><input id="sp" type="number" min="0" inputmode="numeric"></div>
       <div id="chBox" class="hidden"><label for="ch">Κανάλι 16x16 (μέτρα)</label><input id="ch" type="number" min="0" inputmode="numeric"></div>
+      <div id="xtBox" class="hidden"><label>Χωρίς κανάλι: το OTO μπήκε σε ξετρύπι;</label><div class="chips"><label><input type="radio" name="xt" value="Ναι"> Ναι</label><label><input type="radio" name="xt" value="Όχι"> Όχι</label></div></div>
       <p class="hint" id="trHint"></p>
     </div>
     <div id="xRows"></div>
@@ -283,6 +284,7 @@ function xcRow(){
    '<label>Όροφος / διαμέρισμα</label><input class="cFl" type="text" placeholder="π.χ. 02 – Β2">'+
    '<div class="row"><div><label>Καλώδιο Γ φάσης</label><select class="cGc">'+opts(L.gc,'καλώδιο')+'</select></div><div><label>Τεμ./μ.</label><input class="cGq" type="number" min="0" inputmode="numeric"></div></div>'+
    '<div class="row"><div><label>Σπιράλ Φ16 (μ.)</label><input class="cSp" type="number" min="0" inputmode="numeric"></div><div><label>Κανάλι (μ.)</label><input class="cCh" type="number" min="0" inputmode="numeric"></div></div>'+
+   '<label>Pigtail χωρίς κανάλι: το OTO μπήκε σε ξετρύπι;</label><select class="cXt"><option value=""></option><option>Ναι</option><option>Όχι</option></select>'+
    '<div class="row"><div><label>Extra optical</label><select class="cX">'+opts(L.x,'OTO / Reflector')+'</select></div><div><label>Τεμ.</label><input class="cXq" type="number" min="0" inputmode="numeric"></div></div>'+
    (MANOS?'<label>Router (CPE)</label><select class="cAct">'+opts(L.act,'χωρίς ενεργοποίηση')+'</select><div class="cSrB hidden"><label>Σειριακός router</label><input class="cSr" type="text"><label>Φωτογραφία router</label><input class="cPr" type="file" accept="image/*"></div>':'');
   w.querySelector('button').onclick=function(){w.remove();};
@@ -290,14 +292,14 @@ function xcRow(){
   return w;
 }
 $('xcAdd').onclick=function(){$('xcRows').appendChild(xcRow());};
-function xcList(){return [].slice.call(document.querySelectorAll('#xcRows .xc')).map(function(w,i){var q=function(c){var e=w.querySelector(c);return e?e.value:'';};return {n:i+2,fl:q('.cFl').trim(),gc:q('.cGc'),gq:parseFloat(q('.cGq'))||0,sp:parseFloat(q('.cSp'))||0,ch:parseFloat(q('.cCh'))||0,x:q('.cX'),xq:parseFloat(q('.cXq'))||0,act:q('.cAct'),sr:q('.cSr').trim(),pr:w.querySelector('.cPr')};});}
+function xcList(){return [].slice.call(document.querySelectorAll('#xcRows .xc')).map(function(w,i){var q=function(c){var e=w.querySelector(c);return e?e.value:'';};return {n:i+2,fl:q('.cFl').trim(),gc:q('.cGc'),gq:parseFloat(q('.cGq'))||0,sp:parseFloat(q('.cSp'))||0,ch:parseFloat(q('.cCh'))||0,x:q('.cX'),xq:parseFloat(q('.cXq'))||0,act:q('.cAct'),xt:q('.cXt'),sr:q('.cSr').trim(),pr:w.querySelector('.cPr')};});}
 
 /* Εμφανίσεις */
 function refresh(){
   show('newCab',document.querySelector('input[name=cab]:checked').value==='Νέο');
   var g=val('gc'),isT=/transparent/.test(g),isP=/pigtails|σκέτη/.test(g);
   $('gcqL').textContent=/σκέτη/.test(g)?'Μέτρα':'Τεμ.';
-  show('odBox',!!g); show('spBox',$('odExt').checked); show('chBox',$('odInt').checked&&isP);
+  show('odBox',!!g); show('spBox',$('odExt').checked); show('chBox',$('odInt').checked&&isP); show('xtBox',isP&&!num('ch'));
   $('trHint').textContent=isT&&$('odInt').checked?'Transparent: στην εσωτερική όδευση κολλάει απευθείας, χωρίς κανάλι.':'';
   var actOn=document.querySelector('input[name=actst]:checked').value==='Έγινε ενεργοποίηση';
   show('devBox',actOn); show('srBox',!!val('act')); show('sbBox',!!val('boo'));
@@ -383,6 +385,7 @@ function build(){
   if(cab==='Νέο'){ add('Καλώδιο Β φάσης',val('aer'),num('aerq'),'m'); add('Καλώδιο Β φάσης',val('und'),num('undq'),'m'); if(!val('aer')&&!val('und')) errs.push('Δηλώσατε νέο καλώδιο: διαλέξτε Aerial ή Underground με μέτρα.'); }
   if(!OU) add('Indoor Micro Cable',val('imc'),num('imcq'),'m');
 
+  var XT=[];
   rows('eRows').forEach(function(r){add('Ηλεκτρολογικά',r.m,r.q,UNIT(r.m));});
 
   /* Γ φάση */
@@ -391,7 +394,9 @@ function build(){
     add('Καλώδιο Γ φάσης',g,num('gcq'),/σκέτη/.test(g)?'m':'τεμ.');
     if(!$('odExt').checked&&!$('odInt').checked) errs.push('Δηλώστε όδευση για το καλώδιο Γ φάσης.');
     if($('odExt').checked){ if(num('sp')) lines.push({cat:'Γ φάση',item:'ΠΛΑΣΤΙΚΟ ΣΠΙΡΑΛ Φ16',qty:num('sp'),unit:'m'}); else errs.push('Εξωτερική όδευση: γράψτε μέτρα σπιράλ Φ16.'); }
-    if($('odInt').checked&&isP){ if(num('ch')) lines.push({cat:'Γ φάση',item:'ΚΑΝΑΛΙ 16 X 16',qty:num('ch'),unit:'m'}); else errs.push('Εσωτερική όδευση: γράψτε μέτρα καναλιού 16x16.'); }
+    var xt=document.querySelector('input[name=xt]:checked'); xt=xt?xt.value:'';
+    if(isP&&num('ch')) lines.push({cat:'Γ φάση',item:'ΚΑΝΑΛΙ 16 X 16',qty:num('ch'),unit:'m'});
+    else if(isP){ if(!xt) errs.push('Pigtail χωρίς κανάλι: απαντήστε αν το OTO μπήκε σε ξετρύπι.'); else if(xt==='Ναι') XT.push('OTO σε ξετρύπι – χωρίς κανάλι'); else if($('odInt').checked) errs.push('Εσωτερική όδευση: γράψτε μέτρα καναλιού 16x16.'); else warns.push('Pigtail χωρίς κανάλι και το OTO δεν μπήκε σε ξετρύπι.'); }
   }
   var xs=rows('xRows'); xs.forEach(function(r){add('Extra optical',r.m,r.q,'τεμ.');});
   if(isT&&!xs.some(function(r){return /OTO/.test(r.m);})) warns.push('Transparent cable χωρίς OTO.');
@@ -404,6 +409,7 @@ function build(){
     if(c.gc){ if(!c.gq) errs.push('Λείπει ποσότητα καλωδίου για '+nt+'.'); lines.push({cat:'Καλώδιο Γ φάσης',item:c.gc,qty:c.gq,unit:/σκέτη/.test(c.gc)?'m':'τεμ.',note:nt}); }
     if(c.sp) lines.push({cat:'Γ φάση',item:'ΠΛΑΣΤΙΚΟ ΣΠΙΡΑΛ Φ16',qty:c.sp,unit:'m',note:nt});
     if(c.ch) lines.push({cat:'Γ φάση',item:'ΚΑΝΑΛΙ 16 X 16',qty:c.ch,unit:'m',note:nt});
+    else if(/pigtails|σκέτη/.test(c.gc)){ if(!c.xt) errs.push(nt+': pigtail χωρίς κανάλι – απαντήστε αν το OTO μπήκε σε ξετρύπι.'); else if(c.xt==='Ναι') XT.push(nt+': OTO σε ξετρύπι – χωρίς κανάλι'); else warns.push(nt+': pigtail χωρίς κανάλι και το OTO δεν μπήκε σε ξετρύπι.'); }
     if(c.x){ if(!c.xq) errs.push('Λείπει ποσότητα '+c.x+' για '+nt+'.'); lines.push({cat:'Extra optical',item:c.x,qty:c.xq,unit:'τεμ.',note:nt}); }
     if(c.act){ if(!c.sr) errs.push('Γράψτε σειριακό router για '+nt+'.'); if(!(c.pr&&c.pr.files.length)) errs.push('Βγάλτε φωτογραφία router για '+nt+'.'); lines.push({cat:'Ενεργοποίηση',item:c.act,qty:1,unit:'τεμ.',serial:c.sr,note:nt}); }
   });
@@ -422,7 +428,7 @@ function build(){
   }
   if(st==='Ακύρωσε ο πελάτης'&&lines.length) warns.push('Ακυρωμένη δουλειά με υλικά: δεν θα αποχρεωθούν αυτόματα.');
   var works=[].slice.call(document.querySelectorAll('#works input:checked')).map(function(i){return i.value;});
-  var notes=$('notes').value.trim(); if(pc&&pc!=='Μπήκαν'&&J.subs) notes=(notes?notes+'\n':'')+'Εκκρεμούν '+J.subs+' patchcords για κολλητές.';
+  var notes=$('notes').value.trim(); if(XT.length) notes=(notes?notes+'\n':'')+XT.join('\n'); if(pc&&pc!=='Μπήκαν'&&J.subs) notes=(notes?notes+'\n':'')+'Εκκρεμούν '+J.subs+' patchcords για κολλητές.';
   if(st==='Μερικώς'&&!lines.length) warns.push('Μερικώς χωρίς υλικά: δηλώστε όλα τα υλικά, και όσα θα χρειαστούν για την εκκρεμότητα.');
   if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
   return {errs:errs,warns:warns,data:{job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,bep:(bepEx?('Υφιστάμενο Α φάσης'+(bepCh==='Ναι'?' – αλλάχτηκε':bepCh==='Όχι'?' – δεν αλλάχτηκε':'')):''),lines:lines,warnings:warns,notes:notes}};
