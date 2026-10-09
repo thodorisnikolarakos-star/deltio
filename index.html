@@ -304,7 +304,7 @@ function refresh(){
   var actOn=document.querySelector('input[name=actst]:checked').value==='Έγινε ενεργοποίηση';
   show('devBox',actOn); show('srBox',!!val('act')); show('sbBox',!!val('boo'));
   var pcc=document.querySelector('input[name=pc]:checked'); show('pcBox',!!pcc&&pcc.value==='Μπήκαν');
-  var bex=$('bepEx').checked,bch=document.querySelector('input[name=bepch]:checked'); show('bepExBox',bex); show('bepSelBox',!bex||(!!bch&&bch.value==='Ναι')); $('bepL').textContent=bex?'Νέο BEP (αντικατάσταση)':'BEP'; if(bex&&!(bch&&bch.value==='Ναι')) $('bep').value='';
+  var bex=$('bepEx').checked,bch=document.querySelector('input[name=bepch]:checked'); show('bepExBox',bex); show('mobBox',mobOK&&!(LD&&bex)); show('pcWrap',mobOK&&!(LD&&bex)); if(LD&&bex) $('mob').value=''; show('bepSelBox',!bex||(!!bch&&bch.value==='Ναι')); $('bepL').textContent=bex?'Νέο BEP (αντικατάσταση)':'BEP'; if(bex&&!(bch&&bch.value==='Ναι')) $('bep').value='';
   var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
   var part=st==='Μερικώς'; show('fbSec',fbOK);
   show('probBox',part||st==='Πρόβλημα');
@@ -350,11 +350,12 @@ function build(){
   if(bepEx&&bepCh==='Όχι'){}
   else if(val('bep')){ lines.push({cat:'BEP',item:val('bep'),qty:1,unit:'τεμ.',note:bepEx?'αντικατάσταση υφιστάμενου BEP Α φάσης':''}); if(J.subs&&ports(val('bep'))<J.subs) warns.push('Το BEP ('+ports(val('bep'))+') είναι μικρότερο από τους '+J.subs+' συνδρομητές.'); }
   else if(done&&!bepEx) warns.push('Δεν δηλώθηκε BEP.');
-  if(mobOK&&val('mob')){ lines.push({cat:'MOB',item:val('mob'),qty:1,unit:'τεμ.',note:/ως MOB/.test(val('mob'))?'αποχρέωση από κωδικό BEP':''}); if(J.subs&&ports(val('mob'))<J.subs*2) warns.push('Το MOB ('+ports(val('mob'))+') πρέπει να έχει τουλάχιστον '+(J.subs*2)+' θέσεις (active + spare).'); }
+  var mobOK2=mobOK&&!(LD&&bepEx);
+  if(mobOK2&&val('mob')){ lines.push({cat:'MOB',item:val('mob'),qty:1,unit:'τεμ.',note:/ως MOB/.test(val('mob'))?'αποχρέωση από κωδικό BEP':''}); if(J.subs&&ports(val('mob'))<J.subs*2) warns.push('Το MOB ('+ports(val('mob'))+') πρέπει να έχει τουλάχιστον '+(J.subs*2)+' θέσεις (active + spare).'); }
 
   /* Patchcords BEP → MOB (New construction / Overuse) */
-  var pcc=document.querySelector('input[name=pc]:checked'), pc=mobOK&&pcc?pcc.value:'';
-  if((NC||OU)&&done&&!pc) errs.push('Δηλώστε αν μπήκαν patchcords BEP → MOB.');
+  var pcc=document.querySelector('input[name=pc]:checked'), pc=mobOK2&&pcc?pcc.value:'';
+  if(mobOK2&&(NC||OU)&&done&&!pc) errs.push('Δηλώστε αν μπήκαν patchcords BEP → MOB.');
   if(pc==='Μπήκαν'){ if(!val('pcl')) errs.push('Διαλέξτε μήκος patchcord.'); else { add('Patchcord',val('pcl'),num('pcq'),'τεμ.',{note:'BEP → MOB'}); if(num('pcq')&&J.subs&&num('pcq')!==J.subs) warns.push('Patchcords '+num('pcq')+' ενώ οι συνδρομητές είναι '+J.subs+'.'); } }
 
   /* Floor Box */
