@@ -78,6 +78,7 @@ button.send[disabled]{opacity:.6}
     <div class="chips" id="works"></div>
     <label for="status">Κατάσταση</label>
     <select id="status"><option value="">— επιλέξτε —</option><option>Ολοκληρώθηκε</option><option>Μερικώς</option><option>Πρόβλημα ΔΕΗ</option><option>Πρόβλημα PSP</option><option>Ακύρωσε ο πελάτης</option><option>Επαναπρογραμματισμός</option></select>
+    <div id="pspBox" class="hidden"><label>Έγινε κατασκευή;</label><div class="chips"><label><input type="radio" name="pspc" value="Ναι"> Ναι – έγινε κατασκευή</label><label><input type="radio" name="pspc" value="Όχι"> Όχι – δεν κατασκευάστηκε καθόλου</label></div></div>
     <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία (αν είναι γνωστή)</label><input id="newdate" type="date"></div>
     <p class="hint" id="stHint"></p>
   </section>
@@ -306,12 +307,13 @@ function refresh(){
   show('devBox',actOn); show('srBox',!!val('act')); show('sbBox',!!val('boo'));
   var pcc=document.querySelector('input[name=pc]:checked'); show('pcBox',!!pcc&&pcc.value==='Μπήκαν');
   var bex=$('bepEx').checked,bch=document.querySelector('input[name=bepch]:checked'); show('bepExBox',bex); show('mobBox',mobOK&&!(LD&&bex)); show('pcWrap',mobOK&&!(LD&&bex)); if(LD&&bex) $('mob').value=''; show('bepSelBox',!bex||(!!bch&&bch.value==='Ναι')); $('bepL').textContent=bex?'Νέο BEP (αντικατάσταση)':'BEP'; if(bex&&!(bch&&bch.value==='Ναι')) $('bep').value='';
-  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
+  var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');show('pspBox',st==='Πρόβλημα PSP');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st)||pspNo();[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
   var part=st==='Μερικώς'; show('fbSec',fbOK);
   show('probBox',part||/^Πρόβλημα/.test(st));
   $('partHint').textContent=part?'⚠ Μερικώς: δηλώστε ΟΛΑ τα υλικά – όσα μπήκαν σήμερα ΚΑΙ όσα θα χρειαστούν για να κλείσει η εκκρεμότητα (μπορεί να την κλείσει άλλο συνεργείο χωρίς δελτίο). Στα γενικά σχόλια γράψτε τι έγινε και τι μένει.':'';
-  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε στα γενικά σχόλια τον λόγο και ποιος πρέπει να πάει πρώτα (π.χ. χωματουργός, ΔΕΗ). Νέα ημερομηνία μόνο αν είναι γνωστή.':/^Πρόβλημα/.test(st)?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
+  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε στα γενικά σχόλια τον λόγο και ποιος πρέπει να πάει πρώτα (π.χ. χωματουργός, ΔΕΗ). Νέα ημερομηνία μόνο αν είναι γνωστή.':pspNo()?'Δεν κατασκευάστηκε: δεν βάζετε υλικά. Γράψτε στα γενικά σχόλια το πρόβλημα.':/^Πρόβλημα/.test(st)?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
 }
+function pspNo(){var r=document.querySelector('input[name=pspc]:checked');return val('status')==='Πρόβλημα PSP'&&!!r&&r.value==='Όχι';}
 document.addEventListener('change',refresh); refresh();
 
 /* ---------- Φωτογραφίες: σμίκρυνση πριν την αποστολή ---------- */
@@ -432,8 +434,10 @@ function build(){
   var works=[].slice.call(document.querySelectorAll('#works input:checked')).map(function(i){return i.value;});
   var notes=$('notes').value.trim(); if(XT.length) notes=(notes?notes+'\n':'')+XT.join('\n'); if(pc&&pc!=='Μπήκαν'&&J.subs) notes=(notes?notes+'\n':'')+'Εκκρεμούν '+J.subs+' patchcords για κολλητές.';
   if(st==='Μερικώς'&&!lines.length) warns.push('Μερικώς χωρίς υλικά: δηλώστε όλα τα υλικά, και όσα θα χρειαστούν για την εκκρεμότητα.');
-  if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
-  return {errs:errs,warns:warns,data:{job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,bep:(bepEx?('Υφιστάμενο Α φάσης'+(bepCh==='Ναι'?' – αλλάχτηκε':bepCh==='Όχι'?' – δεν αλλάχτηκε':'')):''),lines:lines,warnings:warns,notes:notes}};
+  var pspR=document.querySelector('input[name=pspc]:checked'), reason='';
+  if(st==='Πρόβλημα PSP'){ if(!pspR) errs.unshift('Πρόβλημα PSP: διαλέξτε αν έγινε κατασκευή (κατάσταση).'); else reason=pspR.value==='Όχι'?'Δεν κατασκευάστηκε καθόλου':'Έγινε κατασκευή'; }
+  if(/Ακύρωσε|Επαναπρογραμματισμός/.test(st)||pspNo()){errs=errs.filter(function(e){return /κατάσταση|γενικά σχόλια/.test(e);});lines=[];warns=[];works=[];}
+  return {errs:errs,warns:warns,data:{reason:reason,job:J,gPhases:xcs.length+1,works:works,status:st,newDate:val('newdate'),cable:cab,activation:activation,patchcords:pc,bep:(bepEx?('Υφιστάμενο Α φάσης'+(bepCh==='Ναι'?' – αλλάχτηκε':bepCh==='Όχι'?' – δεν αλλάχτηκε':'')):''),lines:lines,warnings:warns,notes:notes}};
 }
 
 
