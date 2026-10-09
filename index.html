@@ -77,7 +77,7 @@ button.send[disabled]{opacity:.6}
     <label>Εργασίες που έγιναν</label>
     <div class="chips" id="works"></div>
     <label for="status">Κατάσταση</label>
-    <select id="status"><option value="">— επιλέξτε —</option><option>Ολοκληρώθηκε</option><option>Μερικώς</option><option>Πρόβλημα</option><option>Ακύρωσε ο πελάτης</option><option>Επαναπρογραμματισμός</option></select>
+    <select id="status"><option value="">— επιλέξτε —</option><option>Ολοκληρώθηκε</option><option>Μερικώς</option><option>Πρόβλημα ΔΕΗ</option><option>Πρόβλημα PSP</option><option>Ακύρωσε ο πελάτης</option><option>Επαναπρογραμματισμός</option></select>
     <div id="reBox" class="hidden"><label for="newdate">Νέα ημερομηνία (αν είναι γνωστή)</label><input id="newdate" type="date"></div>
     <p class="hint" id="stHint"></p>
   </section>
@@ -308,9 +308,9 @@ function refresh(){
   var bex=$('bepEx').checked,bch=document.querySelector('input[name=bepch]:checked'); show('bepExBox',bex); show('mobBox',mobOK&&!(LD&&bex)); show('pcWrap',mobOK&&!(LD&&bex)); if(LD&&bex) $('mob').value=''; show('bepSelBox',!bex||(!!bch&&bch.value==='Ναι')); $('bepL').textContent=bex?'Νέο BEP (αντικατάσταση)':'BEP'; if(bex&&!(bch&&bch.value==='Ναι')) $('bep').value='';
   var st=val('status'); show('reBox',st==='Επαναπρογραμματισμός');var NW=/Ακύρωσε|Επαναπρογραμματισμός/.test(st);[].forEach.call(document.querySelectorAll('section'),function(s){if(!s.querySelector('#status')&&!s.querySelector('#notes'))s.classList.toggle('nw',NW);});$('works').classList.toggle('nw',NW);$('works').previousElementSibling.classList.toggle('nw',NW);
   var part=st==='Μερικώς'; show('fbSec',fbOK);
-  show('probBox',part||st==='Πρόβλημα');
+  show('probBox',part||/^Πρόβλημα/.test(st));
   $('partHint').textContent=part?'⚠ Μερικώς: δηλώστε ΟΛΑ τα υλικά – όσα μπήκαν σήμερα ΚΑΙ όσα θα χρειαστούν για να κλείσει η εκκρεμότητα (μπορεί να την κλείσει άλλο συνεργείο χωρίς δελτίο). Στα γενικά σχόλια γράψτε τι έγινε και τι μένει.':'';
-  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε στα γενικά σχόλια τον λόγο και ποιος πρέπει να πάει πρώτα (π.χ. χωματουργός, ΔΕΗ). Νέα ημερομηνία μόνο αν είναι γνωστή.':st==='Πρόβλημα'?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
+  $('stHint').style.color=part?'#B42318':'';$('stHint').style.fontWeight=part?'bold':'';$('stHint').textContent=part?'Μερικώς: δηλώστε παρακάτω ΟΛΑ τα υλικά – και όσα θα χρειαστούν για την εκκρεμότητα.':st==='Ακύρωσε ο πελάτης'?'Γράψτε στα γενικά σχόλια τον λόγο της ακύρωσης.':st==='Επαναπρογραμματισμός'?'Δεν έγινε εργασία. Γράψτε στα γενικά σχόλια τον λόγο και ποιος πρέπει να πάει πρώτα (π.χ. χωματουργός, ΔΕΗ). Νέα ημερομηνία μόνο αν είναι γνωστή.':/^Πρόβλημα/.test(st)?'Γράψτε το πρόβλημα στα γενικά σχόλια.':'';
 }
 document.addEventListener('change',refresh); refresh();
 
@@ -328,7 +328,7 @@ function collectPhotos(){
   if(MANOS&&!$('noBoo').checked&&$('pb').files[0]) list.push({kind:'Φωτογραφία booster',f:$('pb').files[0]});
   var st=val('status');
   xcList().forEach(function(c){if(c.act&&c.pr&&c.pr.files[0]) list.push({kind:'Φωτογραφία router πελάτη '+c.n,f:c.pr.files[0]});});
-  if(st==='Μερικώς'||st==='Πρόβλημα') [].slice.call($('probPh').files).forEach(function(f,i){list.push({kind:'Πρόβλημα '+(i+1),f:f});});
+  if(st==='Μερικώς'||/^Πρόβλημα/.test(st)) [].slice.call($('probPh').files).forEach(function(f,i){list.push({kind:'Πρόβλημα '+(i+1),f:f});});
   return Promise.all(list.map(function(p){return shrink(p.f).then(function(d){return {kind:p.kind,type:'image/jpeg',data:d};});}));
 }
 
