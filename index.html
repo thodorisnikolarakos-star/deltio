@@ -197,6 +197,8 @@ var FLOORS = (J.floors?J.floors.split(','):[]).map(function(s){var a=s.split(':'
 if(P.gf) $('gfSubs').value = P.gf;
 if(!J.ofs) show('missing',true);
 if(J.ofs&&!J.ctype){$('nosBox').classList.remove('hidden');
+  Array.prototype.forEach.call(document.querySelectorAll('#app > section, #result, #send'),function(e){e.style.display='none';});
+  $('nosBox').insertAdjacentHTML('beforeend','<div style="margin-top:8px;font-weight:700;color:#b00020">Το υπόλοιπο δελτίο ανοίγει μόνο αφού πατήσετε «Συνέχεια».</div>');
   $('nsGo').addEventListener('click',function(){
     var ct=$('nsCt').value,bt=$('nsBt').value,n=$('nsSubs').value;
     if(!ct||!bt||n===''){alert('Συμπληρώστε τύπο κατασκευής, τύπο κτιρίου και συνδρομητές.');return;}
@@ -476,6 +478,7 @@ function postAPI(body){
   return attempt();
 }
 $('send').addEventListener('click',function(){
+  if(J.ofs&&!J.ctype){alert('Συμπληρώστε τύπο κατασκευής, τύπο κτιρίου, συνδρομητές και πατήστε «Συνέχεια».');return;}
   var r=build(), out=$('result');
   if(P.nos) r.data.notes=(r.data.notes?r.data.notes+'\n':'')+'Χωρίς αυτοψία – τύπος/συνδρομητές από τον τεχνικό.';
   if(!J.ofs){out.innerHTML='<div class="msg err">Το link δεν έχει στοιχεία δουλειάς.</div>';return;}
