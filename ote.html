@@ -212,6 +212,23 @@ var PB=bepCode(J.bep,J.tpl), PM=bmoCode(J.bmo), PC=J.bcp==='new'?bcpCode(J.bcpt)
 
 /* Κεφαλίδα */
 if(!J.srid) show('missing',true);
+if(J.srid&&!J.bo&&!FLOORS.length){
+  Array.prototype.forEach.call(document.querySelectorAll('#app > section, #result, #send'),function(e){e.style.display='none';});
+  var nf=document.createElement('div');nf.className='msg warn';nf.id='nflBox';
+  nf.innerHTML='<b>Λείπουν οι όροφοι του κτιρίου.</b> Συμπληρώστε διαμερίσματα ανά όροφο για να εμφανιστούν τα Floor Box και πατήστε «Συνέχεια».'+
+   '<label style="display:block;margin-top:8px">Διαμερίσματα ανά όροφο (π.χ. 00:1,01:2,02:2 – υπόγειο ΟΑ)<input id="nflIn" type="text" style="width:100%"></label>'+
+   '<label style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="nflBo" type="checkbox" style="width:22px;height:22px"> Direct drop – μόνο BEP, χωρίς Floor Box</label>'+
+   '<button type="button" id="nflGo" class="send" style="margin-top:10px">Συνέχεια</button>'+
+   '<div style="margin-top:8px;font-weight:700;color:#b00020">Το υπόλοιπο δελτίο ανοίγει μόνο αφού πατήσετε «Συνέχεια».</div>';
+  var hdr=document.querySelector('#app > header');(hdr&&hdr.parentNode)?hdr.parentNode.insertBefore(nf,hdr.nextSibling):$('app').insertBefore(nf,$('app').firstChild);
+  $('nflGo').addEventListener('click',function(){
+    var q=new URLSearchParams(location.search);
+    if($('nflBo').checked){q.set('bo','1');}
+    else{var v=$('nflIn').value.trim().replace(/\s/g,'');
+      if(!/^[^:,]+:\d+(,[^:,]+:\d+)*$/.test(v)){alert('Συμπληρώστε τους ορόφους, π.χ. 00:1,01:2,02:2 – ή τσεκάρετε Direct drop.');return;}
+      q.set('fl',v);}
+    location.replace(location.pathname+'?'+q.toString());});
+}
 $('hId').textContent=J.srid||'–';
 $('hAddr').textContent=J.addr;
 $('hBid').textContent=J.bid;
