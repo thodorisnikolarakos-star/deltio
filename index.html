@@ -67,7 +67,7 @@ button.send[disabled]{opacity:.6}
     <label>Τύπος κατασκευής<select id="nsCt"><option value="">–</option><option>New construction</option><option>Overbuild</option><option>Overuse</option><option>Smart readiness</option></select></label>
     <label>Τύπος κτιρίου<select id="nsBt"><option value="">–</option><option>High Density</option><option>Low Density</option><option>Groundfloor Order</option></select></label>
     <label>Αριθμός συνδρομητών<input id="nsSubs" type="number" min="0" inputmode="numeric"></label>
-    <label>Συνδρομητές ανά όροφο (προαιρετικό, π.χ. 0:1,1:2,2:2)<input id="nsFl" type="text"></label>
+    <label>Συνδρομητές ανά όροφο (υποχρεωτικό για High Density / Groundfloor, π.χ. 00:1,01:2,02:2 – υπόγειο ΟΑ, ημιόροφος HO)<input id="nsFl" type="text"></label>
     <button type="button" id="nsGo" class="btn">Συνέχεια</button>
   </div>
   <div id="missing" class="msg err hidden">Το link δεν έχει στοιχεία δουλειάς. Ανοίξτε το link που ήρθε με την ανάθεση.</div>
@@ -196,12 +196,13 @@ var J = {ofs:P.ofs||'',bid:P.building_id||P.bid||'',addr:P.address||P.addr||'',d
 var FLOORS = (J.floors?J.floors.split(','):[]).map(function(s){var a=s.split(':');return {fl:a[0].trim(),n:parseInt(a[1],10)||0};}).filter(function(f){return f.fl;});
 if(P.gf) $('gfSubs').value = P.gf;
 if(!J.ofs) show('missing',true);
-if(J.ofs&&!J.ctype){$('nosBox').classList.remove('hidden');
+var NEEDFL=!!(J.ofs&&J.ctype&&J.btype&&J.btype!=='Low Density'&&!FLOORS.length);
+if(J.ofs&&(!J.ctype||NEEDFL)){$('nosBox').classList.remove('hidden');if(NEEDFL){$('nsCt').value=J.ctype;$('nsBt').value=J.btype;$('nsSubs').value=J.subs||'';}
   Array.prototype.forEach.call(document.querySelectorAll('#app > section, #result, #send'),function(e){e.style.display='none';});
   $('nosBox').insertAdjacentHTML('beforeend','<div style="margin-top:8px;font-weight:700;color:#b00020">Το υπόλοιπο δελτίο ανοίγει μόνο αφού πατήσετε «Συνέχεια».</div>');
   $('nsGo').addEventListener('click',function(){
     var ct=$('nsCt').value,bt=$('nsBt').value,n=$('nsSubs').value;
-    if(!ct||!bt||n===''){alert('Συμπληρώστε τύπο κατασκευής, τύπο κτιρίου και συνδρομητές.');return;}
+    if(!ct||!bt||n===''){alert('Συμπληρώστε τύπο κατασκευής, τύπο κτιρίου και συνδρομητές.');return;}var fl0=$('nsFl').value.trim().replace(/\s/g,'');if(bt!=='Low Density'){if(!fl0){alert('Για '+bt+' συμπληρώστε ΥΠΟΧΡΕΩΤΙΚΑ τους συνδρομητές ανά όροφο (π.χ. 00:1,01:2,02:2), αλλιώς δεν εμφανίζονται τα Floor Box.');return;}if(!/^[^:,]+:\d+(,[^:,]+:\d+)*$/.test(fl0)){alert('Λάθος μορφή ορόφων. Παράδειγμα: 00:1,01:2,02:2');return;}var sm0=fl0.split(',').reduce(function(s,x){return s+(parseInt(x.split(':')[1],10)||0);},0);if(sm0!==parseInt(n,10)&&!confirm('Το άθροισμα ανά όροφο ('+sm0+') διαφέρει από τους συνδρομητές ('+n+'). Συνέχεια;'))return;}
     var q=new URLSearchParams(location.search);q.set('ctype',ct);q.set('btype',bt);q.set('subs',n);q.set('nos','1');
     if($('nsFl').value.trim())q.set('floors',$('nsFl').value.trim().replace(/\s/g,''));
     location.replace(location.pathname+'?'+q.toString());});}
